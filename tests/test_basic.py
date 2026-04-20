@@ -96,3 +96,72 @@ def test_extract_shops_sorted_by_item_count():
 
 def test_extract_shops_empty_input():
     assert extract_shops([]) == []
+
+
+from unittest.mock import patch, MagicMock
+from src.api_client import ApiClient
+from src.utils import RakutenAPIError
+
+
+def _make_api_response(items: list[dict], count: int = 1) -> dict:
+    return {"count": count, "Items": [{"Item": i} for i in items]}
+
+
+MOCK_ITEM = {
+    "shopCode": "s1", "shopName": "Shop1",
+    "shopUrl": "https://www.rakuten.co.jp/s1/",
+    "reviewAverage": "4.0", "reviewCount": "10",
+    "genreId": "100", "itemPrice": "500", "itemName": "Item",
+}
+
+
+def test_api_client_sets_referer_header():
+    client = ApiClient("app-id", "access-key")
+    assert client.session.headers.get("Referer") == "https://github.com/"
+
+
+def test_api_client_search_returns_items():
+    client = ApiClient("app-id", "access-key")
+    fake_response = _make_api_response([MOCK_ITEM], count=1)
+    with patch.object(client.session, "get") as mock_get:
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = fake_response
+        items = client.search(keyword="テスト", category_id=None, count=1)
+    assert len(items) == 1
+    assert items[0]["Item"]["shopCode"] == "s1"
+
+
+def test_api_client_raises_on_403():
+    client = ApiClient("app-id", "access-key")
+    with patch.object(client.session, "get") as mock_get:
+        mock_get.return_value.status_code = 403
+        mock_get.return_value.json.return_value = {
+            "error": "REQUEST_CONTEXT_BODY_HTTP_REFERRER_MISSING",
+            "error_description": "",
+        }
+        with pytest.raises(RakutenAPIError, match="Referer"):
+            client.search(keyword="テスト", category_id=None, count=1)
+
+
+def test_api_client_raises_on_wrong_parameter():
+    client = ApiClient("app-id", "access-key")
+    with patch.object(client.session, "get") as mock_get:
+        mock_get.return_value.status_code = 400
+        mock_get.return_value.json.return_value = {
+            "error": "wrong_parameter",
+            "error_description": "specify valid applicationId",
+        }
+        with pytest.raises(RakutenAPIError, match="applicationId"):
+            client.search(keyword="テスト", category_id=None, count=1)
+
+
+def test_api_client_raises_on_missing_access_key():
+    client = ApiClient("app-id", "access-key")
+    with patch.object(client.session, "get") as mock_get:
+        mock_get.return_value.status_code = 400
+        mock_get.return_value.json.return_value = {
+            "error": "wrong_parameter",
+            "error_description": "accessKey must be present",
+        }
+        with pytest.raises(RakutenAPIError, match="accessKey"):
+            client.search(keyword="テスト", category_id=None, count=1)
