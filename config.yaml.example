@@ -1,0 +1,17 @@
+search:
+  keyword: "ワイヤレスイヤホン"
+  category_id: null
+  count: 200
+
+output:
+  format: excel
+  filename: shops_result
+  sheet_id: null
+
+api:
+  wait_seconds: 1.1
+  max_retries: 3
+
+logging:
+  level: INFO
+  file: logs/rakuten_collector.log
