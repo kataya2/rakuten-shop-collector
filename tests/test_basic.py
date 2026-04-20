@@ -165,3 +165,47 @@ def test_api_client_raises_on_missing_access_key():
         }
         with pytest.raises(RakutenAPIError, match="accessKey"):
             client.search(keyword="テスト", category_id=None, count=1)
+
+
+import csv
+from pathlib import Path
+from src.output_writer import write_csv, write_excel
+from src.shop_extractor import ShopInfo
+
+SAMPLE_SHOPS = [
+    ShopInfo("s1", "Shop One", "https://www.rakuten.co.jp/s1/", 5, 4.2, 120, 980, "100"),
+    ShopInfo("s2", "Shop Two", "https://www.rakuten.co.jp/s2/", 2, 3.8, 40, 1500, "200"),
+]
+
+
+def test_write_csv_creates_file(tmp_path):
+    filepath = str(tmp_path / "output.csv")
+    write_csv(SAMPLE_SHOPS, filepath)
+    assert Path(filepath).exists()
+
+
+def test_write_csv_contains_correct_data(tmp_path):
+    filepath = str(tmp_path / "output.csv")
+    write_csv(SAMPLE_SHOPS, filepath)
+    with open(filepath, encoding="utf-8-sig") as f:
+        reader = csv.DictReader(f)
+        rows = list(reader)
+    assert len(rows) == 2
+    assert rows[0]["shop_id"] == "s1"
+    assert rows[0]["shop_name"] == "Shop One"
+    assert rows[0]["item_count"] == "5"
+
+
+def test_write_excel_creates_file(tmp_path):
+    filepath = str(tmp_path / "output.xlsx")
+    write_excel(SAMPLE_SHOPS, filepath)
+    assert Path(filepath).exists()
+
+
+def test_write_excel_correct_row_count(tmp_path):
+    import openpyxl
+    filepath = str(tmp_path / "output.xlsx")
+    write_excel(SAMPLE_SHOPS, filepath)
+    wb = openpyxl.load_workbook(filepath)
+    ws = wb.active
+    assert ws.max_row == 3  # 1行目ヘッダー + 2行データ
