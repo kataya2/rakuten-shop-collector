@@ -19,3 +19,16 @@ def test_get_logger_returns_logger():
     logger = get_logger("test")
     assert isinstance(logger, logging.Logger)
     assert logger.name == "test"
+
+
+def test_get_logger_has_handlers():
+    logger = get_logger("test_handlers")
+    assert len(logger.handlers) > 0
+
+
+def test_get_logger_is_idempotent():
+    logger1 = get_logger("test_idempotent")
+    handler_count = len(logger1.handlers)
+    logger2 = get_logger("test_idempotent")
+    assert logger1 is logger2
+    assert len(logger2.handlers) == handler_count
