@@ -209,3 +209,42 @@ def test_write_excel_correct_row_count(tmp_path):
     wb = openpyxl.load_workbook(filepath)
     ws = wb.active
     assert ws.max_row == 3  # 1行目ヘッダー + 2行データ
+
+
+from unittest.mock import patch
+
+
+def test_main_rejects_both_keyword_and_category(monkeypatch, capsys):
+    monkeypatch.setenv("RAKUTEN_APP_ID", "test-id")
+    monkeypatch.setenv("RAKUTEN_ACCESS_KEY", "test-key")
+    with patch("sys.argv", ["main.py", "--keyword", "テスト", "--category-id", "100"]):
+        with pytest.raises(SystemExit) as exc:
+            import main as main_module
+            main_module.main()
+    assert exc.value.code == 1
+    captured = capsys.readouterr()
+    assert "--keyword と --category-id は同時に指定できません" in captured.err
+
+
+def test_main_requires_keyword_or_category(monkeypatch, capsys):
+    monkeypatch.setenv("RAKUTEN_APP_ID", "test-id")
+    monkeypatch.setenv("RAKUTEN_ACCESS_KEY", "test-key")
+    with patch("sys.argv", ["main.py"]):
+        with pytest.raises(SystemExit) as exc:
+            import main as main_module
+            main_module.main()
+    assert exc.value.code == 1
+    captured = capsys.readouterr()
+    assert "--keyword または --category-id" in captured.err
+
+
+def test_main_requires_app_id(monkeypatch, capsys):
+    monkeypatch.delenv("RAKUTEN_APP_ID", raising=False)
+    monkeypatch.setenv("RAKUTEN_ACCESS_KEY", "test-key")
+    with patch("sys.argv", ["main.py", "--keyword", "テスト"]):
+        with pytest.raises(SystemExit) as exc:
+            import main as main_module
+            main_module.main()
+    assert exc.value.code == 1
+    captured = capsys.readouterr()
+    assert "RAKUTEN_APP_ID" in captured.err
