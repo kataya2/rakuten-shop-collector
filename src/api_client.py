@@ -61,6 +61,7 @@ class ApiClient:
         return items[:count]
 
     def _get_with_retry(self, params: dict) -> dict:
+        """リトライロジック付きでGETリクエストを実行し、レスポンスボディを返す。"""
         last_error: Exception | None = None
         for attempt in range(self.max_retries):
             try:
@@ -75,6 +76,7 @@ class ApiClient:
         raise RakutenAPIError(f"APIへの接続に失敗しました: {last_error}")
 
     def _handle_response(self, resp: requests.Response) -> dict:
+        """HTTPレスポンスをチェックしてエラーを検出し、JSONボディを返す。"""
         if resp.status_code == 403:
             raise RakutenAPIError(
                 "Refererヘッダーが不正です。"
