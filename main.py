@@ -39,7 +39,10 @@ def _load_config(path: str | None) -> dict:
     if not path:
         return {}
     with open(path, encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
+        cfg = yaml.safe_load(f)
+    if not isinstance(cfg, dict):
+        raise ConfigError(f"設定ファイルはYAML辞書形式である必要があります: {path}")
+    return cfg
 
 
 def _output_path(filename: str, fmt: str) -> str:
@@ -89,11 +92,11 @@ def main() -> None:
         logger.info("ユニークショップ数: %d", len(shops))
 
         if fmt == "csv":
-            path = _output_path(filename, "csv")
+            path = _output_path(filename, fmt)
             write_csv(shops, path)
             print(f"出力完了: {path}")
         elif fmt == "excel":
-            path = _output_path(filename, "excel")
+            path = _output_path(filename, fmt)
             write_excel(shops, path)
             print(f"出力完了: {path}")
         elif fmt == "gsheet":
@@ -112,6 +115,9 @@ def main() -> None:
 
     except (RakutenAPIError, ConfigError) as e:
         print(f"エラー: {e}", file=sys.stderr)
+        sys.exit(1)
+    except Exception as e:
+        print(f"予期しないエラーが発生しました: {e}", file=sys.stderr)
         sys.exit(1)
 
 
