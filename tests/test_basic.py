@@ -117,7 +117,7 @@ MOCK_ITEM = {
 
 def test_api_client_sets_referer_header():
     client = ApiClient("app-id", "access-key")
-    assert client.session.headers.get("Referer") == "https://github.com/"
+    assert client.session.headers.get("Referer") == "https://github.com"
 
 
 def test_api_client_search_returns_items():
@@ -135,6 +135,7 @@ def test_api_client_raises_on_403():
     client = ApiClient("app-id", "access-key")
     with patch.object(client.session, "get") as mock_get:
         mock_get.return_value.status_code = 403
+        mock_get.return_value.text = '{"errors":{"errorCode":403,"errorMessage":"REQUEST_CONTEXT_BODY_HTTP_REFERRER_MISSING"}}'
         mock_get.return_value.json.return_value = {
             "error": "REQUEST_CONTEXT_BODY_HTTP_REFERRER_MISSING",
             "error_description": "",

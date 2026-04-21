@@ -81,9 +81,10 @@ def main() -> None:
 
     wait_seconds = float(cfg.get("api", {}).get("wait_seconds", 1.1))
     max_retries = int(cfg.get("api", {}).get("max_retries", 3))
+    referer = os.environ.get("RAKUTEN_REFERER", "https://github.com")
 
     try:
-        client = ApiClient(app_id, access_key, wait_seconds=wait_seconds, max_retries=max_retries)
+        client = ApiClient(app_id, access_key, referer=referer, wait_seconds=wait_seconds, max_retries=max_retries)
         logger.info("検索開始: keyword=%s, category_id=%s, count=%d", keyword, category_id, count)
         items = client.search(keyword=keyword, category_id=category_id, count=count)
         logger.info("取得アイテム数: %d", len(items))

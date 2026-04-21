@@ -15,6 +15,7 @@ class ApiClient:
         self,
         app_id: str,
         access_key: str,
+        referer: str = "https://github.com",
         wait_seconds: float = 1.1,
         max_retries: int = 3,
     ) -> None:
@@ -23,7 +24,7 @@ class ApiClient:
         self.wait_seconds = wait_seconds
         self.max_retries = max_retries
         self.session = requests.Session()
-        self.session.headers.update({"Referer": "https://github.com/"})
+        self.session.headers.update({"Referer": referer})
 
     def search(
         self,
@@ -65,6 +66,7 @@ class ApiClient:
         last_error: Exception | None = None
         for attempt in range(self.max_retries):
             try:
+                logger.debug("送信Referer: %s", self.session.headers.get("Referer"))
                 resp = self.session.get(API_ENDPOINT, params=params, timeout=10)
                 return self._handle_response(resp)
             except RakutenAPIError:
@@ -94,13 +96,14 @@ class ApiClient:
         desc = body.get("error_description", "")
 
         if resp.status_code == 403:
-            if "REQUEST_CONTEXT_BODY_HTTP_REFERRER_MISSING" in error or "REQUEST_CONTEXT_BODY_HTTP_REFERRER_MISSING" in desc:
+            logger.debug("403 response body: %s", resp.text[:500])
+            if "REQUEST_CONTEXT_BODY_HTTP_REFERRER_MISSING" in resp.text:
                 raise RakutenAPIError(
                     "Refererヘッダーが不正です。"
                     "楽天デベロッパーコンソールの「許可されたWebサイト」を確認してください。"
                 )
             raise RakutenAPIError(
-                f"アクセスが拒否されました (HTTP 403): {error} / {desc}"
+                f"アクセスが拒否されました (HTTP 403): {resp.text[:300]}"
             )
 
         if "accessKey must be present" in desc:
