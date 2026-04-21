@@ -24,7 +24,8 @@ class ApiClient:
         self.wait_seconds = wait_seconds
         self.max_retries = max_retries
         self.session = requests.Session()
-        self.session.headers.update({"Referer": referer})
+        origin = referer.rstrip("/")
+        self.session.headers.update({"Referer": referer, "Origin": origin})
 
     def search(
         self,
