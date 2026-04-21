@@ -77,20 +77,31 @@ class ApiClient:
 
     def _handle_response(self, resp: requests.Response) -> dict:
         """HTTPレスポンスをチェックしてエラーを検出し、JSONボディを返す。"""
-        if resp.status_code == 403:
-            raise RakutenAPIError(
-                "Refererヘッダーが不正です。"
-                "楽天デベロッパーコンソールの「許可されたWebサイト」を確認してください。"
-            )
         if resp.status_code == 401:
             raise RakutenAPIError(
                 "認証に失敗しました。"
                 "RAKUTEN_APP_ID と RAKUTEN_ACCESS_KEY を両方確認してください。"
             )
 
-        body = resp.json()
+        try:
+            body = resp.json()
+        except Exception:
+            raise RakutenAPIError(
+                f"APIから予期しないレスポンスが返されました (HTTP {resp.status_code}): {resp.text[:200]}"
+            )
+
         error = body.get("error", "")
         desc = body.get("error_description", "")
+
+        if resp.status_code == 403:
+            if "REQUEST_CONTEXT_BODY_HTTP_REFERRER_MISSING" in error or "REQUEST_CONTEXT_BODY_HTTP_REFERRER_MISSING" in desc:
+                raise RakutenAPIError(
+                    "Refererヘッダーが不正です。"
+                    "楽天デベロッパーコンソールの「許可されたWebサイト」を確認してください。"
+                )
+            raise RakutenAPIError(
+                f"アクセスが拒否されました (HTTP 403): {error} / {desc}"
+            )
 
         if "accessKey must be present" in desc:
             raise RakutenAPIError(
