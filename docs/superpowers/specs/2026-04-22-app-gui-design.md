@@ -88,7 +88,7 @@ RakutenShopCollectorApp(ctk.CTk)
 | ヘッダー | `CTkButton`（テーマ切替） | 右上配置、クリックで Light/Dark トグル |
 | 検索設定 | `CTkRadioButton` × 2 | キーワード / カテゴリID |
 | 検索設定 | `CTkEntry` × 2 | キーワード・カテゴリID（片方を disabled） |
-| 検索設定 | `CTkSlider` | min=30, max=500, step=10 |
+| 検索設定 | `CTkSlider` | from_=30, to=500, number_of_steps=47（10刻み）、コールバックで `round(v/10)*10` に丸め |
 | 検索設定 | `CTkLabel`（件数表示） | スライダー連動で更新 |
 | 検索設定 | `CTkRadioButton` × 3 | CSV / Excel / 両方 |
 | アクション | `CTkButton`（検索実行） | 幅いっぱい、fg_color="blue" |
