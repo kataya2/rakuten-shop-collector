@@ -249,3 +249,31 @@ def test_main_requires_app_id(monkeypatch, capsys):
     assert exc.value.code == 1
     captured = capsys.readouterr()
     assert "RAKUTEN_APP_ID" in captured.err
+
+
+from app_gui import _check_credentials
+
+
+def test_check_credentials_missing_app_id(monkeypatch):
+    monkeypatch.delenv("RAKUTEN_APP_ID", raising=False)
+    monkeypatch.setenv("RAKUTEN_ACCESS_KEY", "key")
+    app_id, access_key, error = _check_credentials()
+    assert app_id == ""
+    assert "RAKUTEN_APP_ID" in error
+
+
+def test_check_credentials_missing_access_key(monkeypatch):
+    monkeypatch.setenv("RAKUTEN_APP_ID", "test-id")
+    monkeypatch.delenv("RAKUTEN_ACCESS_KEY", raising=False)
+    app_id, access_key, error = _check_credentials()
+    assert access_key == ""
+    assert "RAKUTEN_ACCESS_KEY" in error
+
+
+def test_check_credentials_both_set(monkeypatch):
+    monkeypatch.setenv("RAKUTEN_APP_ID", "test-id")
+    monkeypatch.setenv("RAKUTEN_ACCESS_KEY", "test-key")
+    app_id, access_key, error = _check_credentials()
+    assert app_id == "test-id"
+    assert access_key == "test-key"
+    assert error == ""
