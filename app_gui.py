@@ -329,13 +329,14 @@ class SettingsDialog(ctk.CTkToplevel):
         self._parent._search_btn.configure(state="disabled")
         messagebox.showinfo("リセット完了", "リセットしました。新しいAPIキーを設定してください。")
         self.destroy()
-        self._parent._check_on_startup()
+        self._parent._check_on_startup(allow_destroy=False)
 
 
 class RakutenShopCollectorApp(ctk.CTk):
     """楽天ショップコレクター CustomTkinter GUIアプリ。"""
 
     def __init__(self) -> None:
+        """ウィンドウ設定・認証チェック・全ウィジェット初期化。"""
         super().__init__()
         self.title("Rakuten Shop Collector")
         self.geometry("900x750")
@@ -355,6 +356,7 @@ class RakutenShopCollectorApp(ctk.CTk):
         self.after(200, self._check_on_startup)
 
     def _build_header(self) -> None:
+        """ヘッダーエリア: タイトル・設定・テーマ切替ボタン。"""
         frame = ctk.CTkFrame(self, fg_color="transparent")
         frame.pack(fill="x", padx=20, pady=(15, 5))
 
@@ -379,7 +381,7 @@ class RakutenShopCollectorApp(ctk.CTk):
             command=self._open_settings,
         ).pack(side="right", padx=(0, 10))
 
-    def _check_on_startup(self) -> None:
+    def _check_on_startup(self, *, allow_destroy: bool = True) -> None:
         """起動時・リセット後の認証チェック。credentialsがなければApiKeyDialogを表示する。"""
         app_id, access_key, referer, error = _load_credentials()
         if not error:
@@ -395,7 +397,7 @@ class RakutenShopCollectorApp(ctk.CTk):
             self._access_key = dialog.result["access_key"]
             self._referer = dialog.result["referer"]
             self._search_btn.configure(state="normal")
-        else:
+        elif allow_destroy:
             self.destroy()
 
     def _open_settings(self) -> None:
@@ -578,7 +580,7 @@ class RakutenShopCollectorApp(ctk.CTk):
             elif "Referer" in msg:
                 user_msg = (
                     "Refererエラーです。\n"
-                    ".envのRAKUTEN_REFERERを確認してください。\n\n"
+                    "⚙️ 設定ボタンからRefererを確認・更新してください。\n\n"
                     f"詳細: {msg}"
                 )
             else:
