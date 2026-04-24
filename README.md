@@ -48,6 +48,38 @@ python app_gui.py
 
 ![デスクトップ版のアプリ画面](screenshots/desktop.png)
 
+### d. 配布用 .exe（`build.bat` → `dist\RakutenShopCollector.exe`）
+
+Python 環境を持たないユーザーへ配布するための単一 `.exe` を生成できます。
+
+**ビルド環境の準備（開発者側）**
+
+```bash
+pip install pyinstaller pillow
+```
+
+**ビルド手順**
+
+1. `build.bat` をダブルクリック（またはターミナルで `build.bat` と入力）
+2. `[1/3]`〜`[3/3]` の進捗が表示され、完了メッセージが出る
+3. `dist\RakutenShopCollector.exe` が生成される
+
+**配布方法**
+
+- `dist\RakutenShopCollector.exe` の **1ファイルだけ** を受け取り手に渡す
+- 受け取ったユーザーは `.exe` をダブルクリックして起動
+- 初回起動時に APIキー入力画面が表示される（Python 環境不要）
+
+**注意事項**
+
+| 項目 | 内容 |
+|------|------|
+| ビルド時間 | 初回は 5〜15分かかる場合がある |
+| ファイルサイズ | 約 30〜50 MB（customtkinter・requests 同梱のため） |
+| Windows SmartScreen | 初回実行時に警告が出る場合がある。「詳細情報」→「実行」で起動可能 |
+| customtkinter テーマ | `app_gui.spec` の `datas` で明示的に同梱済み（手動対応不要） |
+| 必要環境 | ビルドを実行するマシンのみ Python が必要。配布先は不要 |
+
 ---
 
 ## 概要
@@ -300,8 +332,13 @@ rakuten-shop-collector/
 ├── .gitignore
 ├── config.yaml.example       # 設定ファイルテンプレート
 ├── app_gui.py                # CustomTkinter デスクトップGUIエントリーポイント
+├── app_gui.spec              # PyInstaller パッケージング設定（.exe ビルド用）
+├── build.bat                 # Windows .exe ビルド自動化スクリプト
 ├── app.py                    # Streamlit ブラウザGUIエントリーポイント
 ├── main.py                   # CLIエントリーポイント
+├── assets/
+│   ├── generate_icon.py      # アイコン生成スクリプト（Pillow）
+│   └── icon.ico              # アプリアイコン（.exe 用）
 ├── screenshots/              # スクリーンショット格納フォルダ
 │   ├── cli.png               # (配置予定)
 │   ├── streamlit.png         # (配置予定)
@@ -351,6 +388,8 @@ rakuten-shop-collector/
 
 ## 今後の拡張予定
 
+- [x] **配布用 .exe のビルド対応**  
+  PyInstaller による単一 exe ビルド対応済み（`build.bat` で自動化）
 - [ ] **ショップレビュー情報の収集**  
   ショップ評価スコアやレビュー件数を取得してリストに追加
 - [ ] **定期実行・差分更新機能**  
