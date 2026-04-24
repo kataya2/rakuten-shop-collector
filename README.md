@@ -4,8 +4,52 @@
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Status](https://img.shields.io/badge/Status-Development-orange)
 
-楽天市場から指定条件に合致するショップ情報を収集し、CSV / Excel / Googleスプレッドシート形式で出力するPythonツールです。  
-**ブラウザGUI版**（Streamlit）と**CLIコマンド版**の両方に対応しています。
+楽天市場から指定条件に合致するショップ情報を収集し、CSV / Excel / Googleスプレッドシート形式で出力するPythonツールです。
+
+---
+
+## 3つの使い方
+
+| | CLI版 | Streamlit版 | デスクトップ版 |
+|---|---|---|---|
+| **起動** | `python main.py --keyword ...` | `streamlit run app.py` | `python app_gui.py` |
+| **画面** | ターミナル | ブラウザ（localhost:8501） | ネイティブウィンドウ |
+| **出力** | ファイルに自動保存 | ブラウザからダウンロード | ダイアログで保存先選択 |
+| **向き** | バッチ処理・自動化・定期実行 | 一時的なブラウザ環境 | ローカルで手軽に実行 |
+
+### a. CLI版（`python main.py`）
+
+ターミナルからコマンドで実行します。バッチ処理や自動化に最適です。
+
+```bash
+python main.py --keyword "ワイヤレスイヤホン" --count 100 --output csv
+```
+
+> スクリーンショット準備中  
+> `screenshots/cli.png` に配置予定
+
+### b. Streamlit版（`streamlit run app.py`）
+
+ブラウザ上でGUI操作できます。インストール不要の環境（サーバー等）でも使えます。
+
+```bash
+streamlit run app.py
+# → http://localhost:8501 が自動で開きます
+```
+
+> スクリーンショット準備中  
+> `screenshots/streamlit.png` に配置予定
+
+### c. デスクトップ版（`python app_gui.py`）
+
+インストール型のネイティブデスクトップアプリです。ブラウザ不要で動作します。
+
+```bash
+python app_gui.py
+```
+
+> スクリーンショット準備中  
+> `screenshots/desktop.png` に配置予定
 
 ---
 
@@ -99,21 +143,31 @@ RAKUTEN_ACCESS_KEY=your_access_key_here                 # accessKey
 GOOGLE_SERVICE_ACCOUNT_JSON=path/to/credentials.json   # スプレッドシート使用時のみ
 ```
 
-> **Refererヘッダーについて：** 新APIはリクエスト時に `Referer` ヘッダーが必須です。本ツールは自動的に `Referer: https://github.com/` を送信します。楽天デベロッパーコンソールで「許可されたWebサイト」に登録したドメインと一致している必要があります。
+> **Refererヘッダーについて：** 新APIはリクエスト時に `Referer` と `Origin` ヘッダーが必須です。本ツールは自動的に `Referer: https://github.com/` と `Origin: https://github.com` を送信します。楽天デベロッパーコンソールで「許可されたWebサイト」に登録したドメインと一致している必要があります。
+
+---
+
+## 起動前チェックリスト
+
+いずれのモードで起動する前にも、以下を確認してください：
+
+- [ ] `.env` ファイルが存在する（`.env.example` をコピーして作成）
+- [ ] `RAKUTEN_APP_ID` に楽天デベロッパーコンソールの **applicationId**（UUID形式）を設定済み
+- [ ] `RAKUTEN_ACCESS_KEY` に **accessKey** を設定済み
+- [ ] `pip install -r requirements.txt` が完了している
+- [ ] （Gsheet使用時のみ）`GOOGLE_SERVICE_ACCOUNT_JSON` にJSONキーのパスを設定済み
 
 ---
 
 ## 使用方法
 
-### GUIアプリとして使う（CustomTkinter版）
+### デスクトップ版（`python app_gui.py`）
 
 ブラウザ不要のネイティブデスクトップGUIアプリです。
 
 ```bash
 python app_gui.py
 ```
-
-![screenshot](screenshots/gui.png)
 
 **画面構成：**
 - キーワードまたはカテゴリIDで検索
@@ -123,12 +177,11 @@ python app_gui.py
 - ライト/ダークテーマ切替対応
 
 **初回起動時の注意：**
-- `.env` に `RAKUTEN_APP_ID` と `RAKUTEN_ACCESS_KEY` が設定されていない場合、起動時に警告ダイアログが表示され検索ボタンが無効になります。
-- `.env.example` をコピーして `.env` を作成し、APIキーを設定してから起動してください。
+`.env` に `RAKUTEN_APP_ID` と `RAKUTEN_ACCESS_KEY` が設定されていない場合、起動時に警告ダイアログが表示され検索ボタンが無効になります。
 
 ---
 
-### GUI版（Streamlit）
+### Streamlit版（`streamlit run app.py`）
 
 ブラウザ上で設定・実行・ダウンロードをすべて行えるGUIモードです。
 
@@ -152,13 +205,11 @@ streamlit run app.py
 └─────────────────────────────────────────────────────────────┘
 ```
 
-> **スクリーンショット：** `docs/screenshots/` に配置予定（起動後にキャプチャしてください）
-
 ---
 
-### CLIコマンド版
+### CLI版（`python main.py`）
 
-### 基本コマンド
+#### 基本コマンド
 
 ```bash
 # キーワードで検索（CSV出力）
@@ -174,7 +225,7 @@ python main.py --keyword "コーヒー豆" --count 50 --output gsheet --sheet-id
 python main.py --keyword "財布" --count 100 --output csv --filename shops_wallet
 ```
 
-### コマンドライン引数一覧
+#### コマンドライン引数一覧
 
 | 引数 | 説明 | 例 |
 |------|------|-----|
@@ -187,7 +238,7 @@ python main.py --keyword "財布" --count 100 --output csv --filename shops_wall
 | `--config` | 設定ファイルのパス | `config.yaml` |
 | `--log-level` | ログレベル `DEBUG` / `INFO` / `WARNING` | `INFO` |
 
-### config.yaml による設定
+#### config.yaml による設定
 
 `config.yaml.example` をコピーして使用します：
 
@@ -216,8 +267,6 @@ logging:
   file: logs/rakuten_collector.log
 ```
 
-設定ファイルを使用した実行：
-
 ```bash
 python main.py --config config.yaml
 ```
@@ -232,7 +281,7 @@ python main.py --config config.yaml
 |-----------|-----------|-----------|-----------|------------|--------|
 | example-shop | サンプルショップ | https://www.rakuten.co.jp/example-shop/ | 株式会社サンプル | 家電、スマホ | 342 |
 | audio-store | オーディオストア | https://www.rakuten.co.jp/audio-store/ | オーディオ株式会社 | 音響機器 | 128 |
-| gadget-land | ガジェットランド | https://www.rakuten.co.jp/gadget-land/ | ガジェット合同会社 | 家電、PC周辺 | 891 |
+| gadget-land | ガジェットランド | https://www.rakuten.co.jp/gadget-land/ | 家電、PC周辺 | 891 |
 
 ### ファイル出力先
 
@@ -253,9 +302,13 @@ rakuten-shop-collector/
 ├── .env.example              # 環境変数テンプレート
 ├── .gitignore
 ├── config.yaml.example       # 設定ファイルテンプレート
-├── app_gui.py                # CustomTkinter GUIエントリーポイント
-├── app.py                    # Streamlit GUIエントリーポイント
+├── app_gui.py                # CustomTkinter デスクトップGUIエントリーポイント
+├── app.py                    # Streamlit ブラウザGUIエントリーポイント
 ├── main.py                   # CLIエントリーポイント
+├── screenshots/              # スクリーンショット格納フォルダ
+│   ├── cli.png               # (配置予定)
+│   ├── streamlit.png         # (配置予定)
+│   └── desktop.png           # (配置予定)
 ├── src/
 │   ├── __init__.py
 │   ├── api_client.py         # 楽天API通信処理
@@ -283,10 +336,11 @@ rakuten-shop-collector/
 
 | エラー | 原因 | 対処法 |
 |--------|------|--------|
-| `REQUEST_CONTEXT_BODY_HTTP_REFERRER_MISSING` (403) | Refererヘッダーが未設定 | `Referer: https://github.com/` をリクエストヘッダーに含める |
+| `REQUEST_CONTEXT_BODY_HTTP_REFERRER_MISSING` (403) | `Referer` / `Origin` ヘッダーが未設定 | 最新の `api_client.py` を使用する（両ヘッダーを自動送信） |
 | `specify valid applicationId` / `wrong_parameter` | 旧APIエンドポイントを使用している | エンドポイントを `openapi.rakuten.co.jp` に変更する |
 | `accessKey must be present` | `.env` に `RAKUTEN_ACCESS_KEY` が未設定 | `.env` に `RAKUTEN_ACCESS_KEY=...` を追加する |
 | `401 Unauthorized` | `applicationId` または `accessKey` が間違っている | 楽天デベロッパーコンソールで両方の値を再確認する |
+| 検索ボタンが無効（グレーアウト） | `.env` の認証情報が未設定（デスクトップ版） | `.env.example` をコピーして `.env` を作成し、APIキーを設定する |
 
 ---
 
@@ -306,7 +360,9 @@ rakuten-shop-collector/
   前回取得結果との差分のみを更新し、変更履歴を記録
 - [ ] **複数キーワードの一括処理**  
   キーワードリストを読み込んで一度に複数検索を実行
-- [x] **GUIモード**  
-  StreamlitによるブラウザGUIを追加済み（`streamlit run app.py`）
+- [x] **GUIモード（Streamlit）**  
+  ブラウザGUIを追加済み（`streamlit run app.py`）
+- [x] **GUIモード（デスクトップ）**  
+  CustomTkinterによるネイティブデスクトップGUIを追加済み（`python app_gui.py`）
 - [ ] **他モールへの対応**  
   Yahoo!ショッピング・Amazon等への収集対象の拡張
