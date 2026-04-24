@@ -54,6 +54,23 @@ def _save_settings(data: dict, path: Path | None = None) -> bool:
         return False
 
 
+def _load_credentials() -> tuple[str, str, str, str]:
+    """Load credentials with priority: settings.json > env vars. Returns (app_id, access_key, referer, error)."""
+    settings = _load_settings()
+    if settings and settings.get("rakuten_app_id") and settings.get("rakuten_access_key"):
+        return (
+            settings["rakuten_app_id"],
+            settings["rakuten_access_key"],
+            settings.get("rakuten_referer", "https://github.com/"),
+            "",
+        )
+    app_id, access_key, error = _check_credentials()
+    if not error:
+        referer = os.environ.get("RAKUTEN_REFERER", "https://github.com/")
+        return app_id, access_key, referer, ""
+    return "", "", "", error
+
+
 def _check_credentials() -> tuple[str, str, str]:
     """
     .envからRAKUTEN_APP_IDとRAKUTEN_ACCESS_KEYを読み込む。

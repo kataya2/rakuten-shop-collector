@@ -323,3 +323,54 @@ def test_load_settings_returns_none_when_not_dict(tmp_path):
     path = tmp_path / "settings.json"
     path.write_text("[1, 2, 3]", encoding="utf-8")
     assert _load_settings(path) is None
+
+
+from app_gui import _load_credentials
+
+
+def test_load_credentials_from_settings(tmp_path, monkeypatch):
+    path = tmp_path / "settings.json"
+    path.write_text(
+        '{"rakuten_app_id": "s-id", "rakuten_access_key": "s-key", "rakuten_referer": "https://github.com/"}',
+        encoding="utf-8",
+    )
+    monkeypatch.setattr("app_gui._settings_path", lambda: path)
+    monkeypatch.delenv("RAKUTEN_APP_ID", raising=False)
+    monkeypatch.delenv("RAKUTEN_ACCESS_KEY", raising=False)
+    app_id, access_key, referer, error = _load_credentials()
+    assert app_id == "s-id"
+    assert access_key == "s-key"
+    assert referer == "https://github.com/"
+    assert error == ""
+
+
+def test_load_credentials_falls_back_to_env(tmp_path, monkeypatch):
+    monkeypatch.setattr("app_gui._settings_path", lambda: tmp_path / "missing.json")
+    monkeypatch.setenv("RAKUTEN_APP_ID", "env-id")
+    monkeypatch.setenv("RAKUTEN_ACCESS_KEY", "env-key")
+    app_id, access_key, referer, error = _load_credentials()
+    assert app_id == "env-id"
+    assert access_key == "env-key"
+    assert error == ""
+
+
+def test_load_credentials_settings_takes_priority_over_env(tmp_path, monkeypatch):
+    path = tmp_path / "settings.json"
+    path.write_text(
+        '{"rakuten_app_id": "s-id", "rakuten_access_key": "s-key", "rakuten_referer": "https://github.com/"}',
+        encoding="utf-8",
+    )
+    monkeypatch.setattr("app_gui._settings_path", lambda: path)
+    monkeypatch.setenv("RAKUTEN_APP_ID", "env-id")
+    monkeypatch.setenv("RAKUTEN_ACCESS_KEY", "env-key")
+    app_id, access_key, referer, error = _load_credentials()
+    assert app_id == "s-id"
+
+
+def test_load_credentials_returns_error_when_none(tmp_path, monkeypatch):
+    monkeypatch.setattr("app_gui._settings_path", lambda: tmp_path / "missing.json")
+    monkeypatch.delenv("RAKUTEN_APP_ID", raising=False)
+    monkeypatch.delenv("RAKUTEN_ACCESS_KEY", raising=False)
+    app_id, access_key, referer, error = _load_credentials()
+    assert error != ""
+    assert app_id == ""
