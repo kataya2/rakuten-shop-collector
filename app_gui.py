@@ -336,7 +336,6 @@ class RakutenShopCollectorApp(ctk.CTk):
     """楽天ショップコレクター CustomTkinter GUIアプリ。"""
 
     def __init__(self) -> None:
-        """ウィンドウ設定・クレデンシャル確認・全ウィジェット初期化。"""
         super().__init__()
         self.title("Rakuten Shop Collector")
         self.geometry("900x750")
@@ -345,6 +344,7 @@ class RakutenShopCollectorApp(ctk.CTk):
         self._shops: list[ShopInfo] = []
         self._app_id: str = ""
         self._access_key: str = ""
+        self._referer: str = ""
         self._theme: str = "light"
 
         self._build_header()
@@ -352,16 +352,9 @@ class RakutenShopCollectorApp(ctk.CTk):
         self._build_action_frame()
         self._build_result_frame()
 
-        app_id, access_key, error = _check_credentials()
-        if error:
-            messagebox.showwarning("認証情報エラー", error)
-            self._search_btn.configure(state="disabled")
-        else:
-            self._app_id = app_id
-            self._access_key = access_key
+        self.after(200, self._check_on_startup)
 
     def _build_header(self) -> None:
-        """ヘッダーエリア: タイトルとテーマ切替ボタン。"""
         frame = ctk.CTkFrame(self, fg_color="transparent")
         frame.pack(fill="x", padx=20, pady=(15, 5))
 
@@ -378,6 +371,37 @@ class RakutenShopCollectorApp(ctk.CTk):
             command=self._toggle_theme,
         )
         self._theme_btn.pack(side="right")
+
+        ctk.CTkButton(
+            frame,
+            text="⚙️ 設定",
+            width=80,
+            command=self._open_settings,
+        ).pack(side="right", padx=(0, 10))
+
+    def _check_on_startup(self) -> None:
+        """起動時・リセット後の認証チェック。credentialsがなければApiKeyDialogを表示する。"""
+        app_id, access_key, referer, error = _load_credentials()
+        if not error:
+            self._app_id = app_id
+            self._access_key = access_key
+            self._referer = referer
+            self._search_btn.configure(state="normal")
+            return
+        dialog = ApiKeyDialog(self)
+        self.wait_window(dialog)
+        if dialog.result:
+            self._app_id = dialog.result["app_id"]
+            self._access_key = dialog.result["access_key"]
+            self._referer = dialog.result["referer"]
+            self._search_btn.configure(state="normal")
+        else:
+            self.destroy()
+
+    def _open_settings(self) -> None:
+        """設定ダイアログを開く。"""
+        dialog = SettingsDialog(self)
+        self.wait_window(dialog)
 
     def _toggle_theme(self) -> None:
         """ライト/ダークテーマを切り替える。"""
@@ -463,6 +487,7 @@ class RakutenShopCollectorApp(ctk.CTk):
             text="🔍 検索を実行",
             font=ctk.CTkFont(size=14, weight="bold"),
             height=40,
+            state="disabled",
             command=self._on_search,
         )
         self._search_btn.pack(fill="x", pady=(0, 5))
@@ -537,7 +562,7 @@ class RakutenShopCollectorApp(ctk.CTk):
     def _run_search(self, keyword: str | None, category_id: str | None, count: int) -> None:
         """別スレッドでAPI検索を実行する（UIウィジェットに直接触れない）。"""
         try:
-            referer = os.environ.get("RAKUTEN_REFERER", "https://github.com")
+            referer = self._referer or os.environ.get("RAKUTEN_REFERER", "https://github.com/")
             client = ApiClient(self._app_id, self._access_key, referer=referer)
             items = client.search(keyword=keyword, category_id=category_id, count=count)
             shops = extract_shops(items)
@@ -547,7 +572,7 @@ class RakutenShopCollectorApp(ctk.CTk):
             if "applicationId" in msg or "accessKey" in msg or "認証" in msg:
                 user_msg = (
                     "APIキーを確認してください。\n"
-                    ".envのRAKUTEN_APP_IDとRAKUTEN_ACCESS_KEYを見直してください。\n\n"
+                    "⚙️ 設定ボタンからAPIキーを確認・更新してください。\n\n"
                     f"詳細: {msg}"
                 )
             elif "Referer" in msg:
