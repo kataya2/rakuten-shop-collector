@@ -1,6 +1,8 @@
 """CustomTkinter GUI for Rakuten Shop Collector."""
 from __future__ import annotations
+import json
 import os
+import sys
 import threading
 import tkinter as tk
 from pathlib import Path
@@ -18,6 +20,34 @@ load_dotenv()
 
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("blue")
+
+
+def _settings_path() -> Path:
+    if getattr(sys, "frozen", False):
+        base = Path(sys.executable).parent
+    else:
+        base = Path(__file__).parent
+    return base / "config" / "settings.json"
+
+
+def _load_settings(path: Path | None = None) -> dict | None:
+    p = path if path is not None else _settings_path()
+    if not p.exists():
+        return None
+    try:
+        return json.loads(p.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return None
+
+
+def _save_settings(data: dict, path: Path | None = None) -> bool:
+    p = path if path is not None else _settings_path()
+    try:
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+        return True
+    except OSError:
+        return False
 
 
 def _check_credentials() -> tuple[str, str, str]:
