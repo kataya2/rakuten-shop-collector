@@ -327,8 +327,8 @@ class SettingsDialog(ctk.CTkToplevel):
         self._parent._access_key = ""
         self._parent._referer = ""
         self._parent._search_btn.configure(state="disabled")
-        self.destroy()
         messagebox.showinfo("リセット完了", "リセットしました。新しいAPIキーを設定してください。")
+        self.destroy()
         self._parent._check_on_startup()
 
 
