@@ -99,8 +99,8 @@ class ApiKeyDialog(ctk.CTkToplevel):
 
         self._build_ui()
         self.protocol("WM_DELETE_WINDOW", self._on_cancel)
-        self.grab_set()
-        self.focus_set()
+        self.after(100, self.grab_set)
+        self.after(100, self.focus_set)
 
     def _build_ui(self) -> None:
         ctk.CTkLabel(
@@ -177,7 +177,7 @@ class ApiKeyDialog(ctk.CTkToplevel):
         access_key = self._access_key_entry.get().strip()
         if not app_id:
             return "Application ID を入力してください"
-        if app_id.count("-") < 4:
+        if app_id.count("-") != 4:
             return (
                 "Application ID はUUID形式で入力してください"
                 "（例: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx）"
@@ -191,6 +191,7 @@ class ApiKeyDialog(ctk.CTkToplevel):
         if error:
             self._error_label.configure(text=error)
             return
+        self._error_label.configure(text="")
         app_id = self._app_id_entry.get().strip()
         access_key = self._access_key_entry.get().strip()
         referer = self._referer_entry.get().strip() or "https://github.com/"
