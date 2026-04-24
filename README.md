@@ -25,8 +25,7 @@
 python main.py --keyword "ワイヤレスイヤホン" --count 100 --output csv
 ```
 
-> スクリーンショット準備中  
-> `screenshots/cli.png` に配置予定
+![CLI版の実行画面](screenshots/cli.png)
 
 ### b. Streamlit版（`streamlit run app.py`）
 
@@ -37,8 +36,7 @@ streamlit run app.py
 # → http://localhost:8501 が自動で開きます
 ```
 
-> スクリーンショット準備中  
-> `screenshots/streamlit.png` に配置予定
+![Streamlit版のブラウザ画面](screenshots/streamlit.png)
 
 ### c. デスクトップ版（`python app_gui.py`）
 
@@ -48,8 +46,7 @@ streamlit run app.py
 python app_gui.py
 ```
 
-> スクリーンショット準備中  
-> `screenshots/desktop.png` に配置予定
+![デスクトップ版のアプリ画面](screenshots/desktop.png)
 
 ---
 
