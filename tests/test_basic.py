@@ -279,8 +279,6 @@ def test_check_credentials_both_set(monkeypatch):
     assert error == ""
 
 
-import json
-from pathlib import Path
 from app_gui import _settings_path, _load_settings, _save_settings
 
 
@@ -319,3 +317,9 @@ def test_save_settings_creates_parent_directory(tmp_path):
     path = tmp_path / "nested" / "dir" / "settings.json"
     assert _save_settings({"rakuten_app_id": "x", "rakuten_access_key": "y"}, path) is True
     assert path.exists()
+
+
+def test_load_settings_returns_none_when_not_dict(tmp_path):
+    path = tmp_path / "settings.json"
+    path.write_text("[1, 2, 3]", encoding="utf-8")
+    assert _load_settings(path) is None

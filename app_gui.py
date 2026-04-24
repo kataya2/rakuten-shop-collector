@@ -23,6 +23,7 @@ ctk.set_default_color_theme("blue")
 
 
 def _settings_path() -> Path:
+    """Return the absolute path to config/settings.json, exe-aware."""
     if getattr(sys, "frozen", False):
         base = Path(sys.executable).parent
     else:
@@ -31,22 +32,25 @@ def _settings_path() -> Path:
 
 
 def _load_settings(path: Path | None = None) -> dict | None:
+    """Load settings.json and return as dict, or None if missing/invalid."""
     p = path if path is not None else _settings_path()
     if not p.exists():
         return None
     try:
-        return json.loads(p.read_text(encoding="utf-8"))
+        result = json.loads(p.read_text(encoding="utf-8"))
+        return result if isinstance(result, dict) else None
     except (json.JSONDecodeError, OSError):
         return None
 
 
 def _save_settings(data: dict, path: Path | None = None) -> bool:
+    """Save data to settings.json. Returns True on success, False on failure."""
     p = path if path is not None else _settings_path()
     try:
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
         return True
-    except OSError:
+    except (OSError, TypeError):
         return False
 
 
