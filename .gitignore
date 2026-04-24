@@ -188,6 +188,9 @@ cython_debug/
 output/*.csv
 output/*.xlsx
 
+# API key settings (contains credentials)
+config/settings.json
+
 # Visual Studio Code
 #  Visual Studio Code specific template is maintained in a separate VisualStudioCode.gitignore 
 #  that can be found at https://github.com/github/gitignore/blob/main/Global/VisualStudioCode.gitignore
