@@ -4,6 +4,7 @@ import json
 import os
 import sys
 import threading
+import webbrowser
 import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
@@ -83,6 +84,128 @@ def _check_credentials() -> tuple[str, str, str]:
     if not access_key:
         return app_id, "", "RAKUTEN_ACCESS_KEY が設定されていません。.env を確認してください。"
     return app_id, access_key, ""
+
+
+class ApiKeyDialog(ctk.CTkToplevel):
+    """楽天APIキー初回設定モーダルダイアログ。"""
+
+    def __init__(self, parent: ctk.CTk) -> None:
+        super().__init__(parent)
+        self.title("楽天APIキーの初回設定")
+        self.geometry("500x410")
+        self.resizable(False, False)
+        self.result: dict | None = None
+        self._show_key: bool = False
+
+        self._build_ui()
+        self.protocol("WM_DELETE_WINDOW", self._on_cancel)
+        self.grab_set()
+        self.focus_set()
+
+    def _build_ui(self) -> None:
+        ctk.CTkLabel(
+            self,
+            text=(
+                "このアプリを使用するには、楽天APIキーが必要です。\n"
+                "楽天Developersで無料のアプリを作成してAPIキーを取得してください。"
+            ),
+            wraplength=460,
+            justify="left",
+        ).pack(padx=20, pady=(20, 5), anchor="w")
+
+        ctk.CTkButton(
+            self,
+            text="📖 楽天Developersを開く",
+            width=220,
+            command=lambda: webbrowser.open("https://webservice.rakuten.co.jp/"),
+        ).pack(padx=20, pady=(0, 15), anchor="w")
+
+        form = ctk.CTkFrame(self, fg_color="transparent")
+        form.pack(fill="x", padx=20)
+        form.columnconfigure(1, weight=1)
+
+        ctk.CTkLabel(form, text="Application ID:").grid(
+            row=0, column=0, sticky="w", pady=6
+        )
+        self._app_id_entry = ctk.CTkEntry(
+            form,
+            placeholder_text="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+            width=300,
+        )
+        self._app_id_entry.grid(
+            row=0, column=1, columnspan=2, sticky="ew", padx=(10, 0), pady=6
+        )
+
+        ctk.CTkLabel(form, text="Access Key:").grid(
+            row=1, column=0, sticky="w", pady=6
+        )
+        self._access_key_entry = ctk.CTkEntry(form, show="*", width=260)
+        self._access_key_entry.grid(
+            row=1, column=1, sticky="ew", padx=(10, 5), pady=6
+        )
+        ctk.CTkButton(
+            form, text="👁", width=34, command=self._toggle_key_visibility
+        ).grid(row=1, column=2, pady=6)
+
+        ctk.CTkLabel(form, text="Referer:").grid(
+            row=2, column=0, sticky="w", pady=6
+        )
+        self._referer_entry = ctk.CTkEntry(form, width=300)
+        self._referer_entry.insert(0, "https://github.com/")
+        self._referer_entry.grid(
+            row=2, column=1, columnspan=2, sticky="ew", padx=(10, 0), pady=6
+        )
+
+        self._error_label = ctk.CTkLabel(self, text="", text_color="red", wraplength=460)
+        self._error_label.pack(padx=20, pady=(10, 0), anchor="w")
+
+        btn_frame = ctk.CTkFrame(self, fg_color="transparent")
+        btn_frame.pack(fill="x", padx=20, pady=(10, 20))
+        ctk.CTkButton(
+            btn_frame, text="💾 保存して開始", command=self._on_save
+        ).pack(side="left", padx=(0, 10))
+        ctk.CTkButton(
+            btn_frame, text="❌ キャンセル", fg_color="gray", command=self._on_cancel
+        ).pack(side="left")
+
+    def _toggle_key_visibility(self) -> None:
+        self._show_key = not self._show_key
+        self._access_key_entry.configure(show="" if self._show_key else "*")
+
+    def _validate(self) -> str:
+        app_id = self._app_id_entry.get().strip()
+        access_key = self._access_key_entry.get().strip()
+        if not app_id:
+            return "Application ID を入力してください"
+        if app_id.count("-") < 4:
+            return (
+                "Application ID はUUID形式で入力してください"
+                "（例: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx）"
+            )
+        if not access_key:
+            return "Access Key を入力してください"
+        return ""
+
+    def _on_save(self) -> None:
+        error = self._validate()
+        if error:
+            self._error_label.configure(text=error)
+            return
+        app_id = self._app_id_entry.get().strip()
+        access_key = self._access_key_entry.get().strip()
+        referer = self._referer_entry.get().strip() or "https://github.com/"
+        ok = _save_settings(
+            {"rakuten_app_id": app_id, "rakuten_access_key": access_key, "rakuten_referer": referer}
+        )
+        if ok:
+            self.result = {"app_id": app_id, "access_key": access_key, "referer": referer}
+            self.destroy()
+        else:
+            self._error_label.configure(text="設定ファイルの保存に失敗しました。フォルダの書き込み権限を確認してください。")
+
+    def _on_cancel(self) -> None:
+        self.result = None
+        self.destroy()
 
 
 class RakutenShopCollectorApp(ctk.CTk):
