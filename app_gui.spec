@@ -14,6 +14,7 @@ a = Analysis(
     hiddenimports=[
         'customtkinter',
         'PIL._tkinter_finder',  # Pillow + Tkinter 連携に必要
+        'dotenv',               # python-dotenv: import name differs from package name
     ],
     hookspath=[],
     hooksconfig={},
