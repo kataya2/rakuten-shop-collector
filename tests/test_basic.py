@@ -352,6 +352,7 @@ def test_load_credentials_falls_back_to_env(tmp_path, monkeypatch):
     assert app_id == "env-id"
     assert access_key == "env-key"
     assert error == ""
+    assert referer == "https://github.com/"
 
 
 def test_load_credentials_settings_takes_priority_over_env(tmp_path, monkeypatch):
@@ -365,6 +366,8 @@ def test_load_credentials_settings_takes_priority_over_env(tmp_path, monkeypatch
     monkeypatch.setenv("RAKUTEN_ACCESS_KEY", "env-key")
     app_id, access_key, referer, error = _load_credentials()
     assert app_id == "s-id"
+    assert access_key == "s-key"
+    assert error == ""
 
 
 def test_load_credentials_returns_error_when_none(tmp_path, monkeypatch):
