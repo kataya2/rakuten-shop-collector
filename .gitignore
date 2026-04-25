@@ -30,7 +30,7 @@ MANIFEST
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
-*.spec
+# *.spec  — app_gui.spec はバージョン管理対象
 
 # Installer logs
 pip-log.txt
@@ -187,6 +187,9 @@ cython_debug/
 # Rakuten Shop Collector output files
 output/*.csv
 output/*.xlsx
+
+# API key settings (contains credentials)
+config/settings.json
 
 # Visual Studio Code
 #  Visual Studio Code specific template is maintained in a separate VisualStudioCode.gitignore 

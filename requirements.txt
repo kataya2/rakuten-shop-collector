@@ -7,3 +7,7 @@ python-dotenv>=1.0.0
 streamlit>=1.35.0
 customtkinter>=5.2.0
 pytest>=8.0.0
+
+# ---- ビルドツール（.exe パッケージング用） ----
+pyinstaller>=6.0
+pillow>=10.0
